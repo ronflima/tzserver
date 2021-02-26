@@ -1,0 +1,18 @@
+[Unit]
+Description=Servidor Day of Defeat Source Tolerância Zero
+After=multiuser.target
+User=steam
+Group=steam
+[Service]
+ExecStart=/usr/local/sbin/dodtz start
+ExecStop=/usr/local/sbin/dodtz stop
+Type=forking
+[Install]
+WantedBy=multi-user.target
+[Service]
+CPUWeight=20
+CPUQuota=90%
+Restart=on-failure
+RestartSec=10s
+TimeoutStopSec=2
+MemoryLimit=512M

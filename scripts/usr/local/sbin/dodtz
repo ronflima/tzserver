@@ -1,0 +1,91 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          dodtz
+# Default-Start:     2 3 4 5
+# Default-Stop:
+# Short-Description: TZ DOD Server
+# Description:      TZ DOD Server
+### END INIT INFO
+# -*- coding: utf-8 -*-
+# Author: Ronaldo Faria Lima <ronaldo.faria.lima@gmail.com>
+# Based on DBUS startup file
+
+set -e
+
+DAEMONDIR=/usr/local/games/dodtz
+DAEMON=$DAEMONDIR/srcds_run
+NAME=dodtz
+DAEMONUSER=steam
+PIDDIR=/var/run/dodtz
+PIDFILE=$PIDDIR/dodtz.pid
+DESC="TZ DOD SRC"
+PARAMS="-port 27015 -game dod -tickrate 66 -dir $DAEMONDIR +map dod_crash +maxplayers 32 +exec server.cfg"
+test -x $DAEMON || exit 0
+
+. /lib/lsb/init-functions
+
+start_it_up()
+{
+  if [ ! -d $PIDDIR ]; then
+    mkdir -p $PIDDIR
+    chown $DAEMONUSER $PIDDIR
+    chgrp $DAEMONUSER $PIDDIR
+  fi
+
+  if [ -e $PIDFILE ]; then
+    if $0 status > /dev/null ; then
+      log_success_msg "$DESC already started; not starting."
+      return
+    else
+      log_success_msg "Removing stale PID file $PIDFILE."
+      rm -f $PIDFILE
+    fi
+  fi
+
+  log_daemon_msg "Starting $DESC" "$NAME"
+  start-stop-daemon --start --background --quiet --pidfile $PIDFILE \
+    --exec $DAEMON --user $DAEMONUSER --chuid $DAEMONUSER -- $PARAMS -pidfile $PIDFILE
+  log_end_msg $?
+}
+
+shut_it_down()
+{
+  log_daemon_msg "Stopping $DESC" "$NAME"
+  start-stop-daemon --stop --retry 5 --background --quiet --oknodo --pidfile $PIDFILE \
+    --user $DAEMONUSER
+  log_end_msg $?
+  rm -f $PIDFILE
+}
+
+reload_it()
+{
+  create_machineid
+  log_action_begin_msg "Reloading $DESC config"
+  shut_it_down
+  start_it_up
+  log_action_end_msg $?
+}
+
+case "$1" in
+  start)
+    start_it_up
+  ;;
+  stop)
+    shut_it_down
+  ;;
+  reload|force-reload)
+    reload_it
+  ;;
+  restart)
+    shut_it_down
+    start_it_up
+  ;;
+  status)
+    status_of_proc -p $PIDFILE $DAEMON $NAME && exit 0 || exit $?
+    ;;
+  *)
+    echo "Usage: $NAME {start|stop|reload|restart|force-reload|status}" >&2
+    exit 2
+  ;;
+esac
+
