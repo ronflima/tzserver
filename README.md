@@ -54,4 +54,9 @@ copiados para `/usr/local/sbin`.
 O script de startup parte da assunção de que o jogo está instalado em
 `/usr/local/games/dodtz`.
 
+## Configurações recomendadas
 
+O arquivo [firewall.txt](firewall.txt) contém uma lista de redes de
+onde originam-se ataques que causam lags, lentidão e sobrecarga no
+servidor. É importante que esta lista seja configurada no firewall que
+protegerá a instalação.
